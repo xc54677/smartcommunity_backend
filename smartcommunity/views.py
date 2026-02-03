@@ -34,10 +34,11 @@ class BannerView(GenericViewSet, ListModelMixin):
 
 from .models import Collection
 from datetime import datetime
+from rest_framework.mixins import DestroyModelMixin
 
 
 # 信息采集接口--》查询登录用户当天采集的所有数据(未完成-还没写登录，暂时先查当天所有采集的数据)
-class CollectionView(GenericViewSet, ListModelMixin):
+class CollectionView(GenericViewSet, ListModelMixin, DestroyModelMixin):
     # 查出当天的-->>没过滤当前用户
     queryset = Collection.objects.all().filter(create_time__gte=datetime.now().date())
     serializer_class = CollectionSerializer
