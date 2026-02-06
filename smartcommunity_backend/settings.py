@@ -1,9 +1,16 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-wjrw4x(yl(1kl*f1v#=&w$nys9u4udjb#%eul0w8z8+v@fofrd'
 DEBUG = True
+
+# 配置反向代理，让Django识别真实的外部协议（HTTPS）和主机名
+# 适配cpolar/ngrok/Nginx等反向代理场景
+USE_X_FORWARDED_HOST = True  # 允许Django从代理头中获取真实的主机名
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 识别代理传递的HTTPS协议
+########################################################################################
 
 ALLOWED_HOSTS = ['*']
 
@@ -89,8 +96,6 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 STATIC_URL = 'static/'
-
-import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

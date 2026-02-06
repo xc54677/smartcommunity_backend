@@ -8,7 +8,9 @@ from smartcommunity.models import Welcome, Banner
 def welcome(request):
     # 1 查出order最大的一张图片，返回给前端
     res = Welcome.objects.all().order_by('-order').first()
-    img = 'http://192.168.1.3:8000/media/' + str(res.img)
+    # print("welcome url: " + res.img.url)
+    # img = 'http://192.168.2.8:8000/media/' + str(res.img)
+    img = request.build_absolute_uri(res.img.url)
     return JsonResponse({'code': 100, 'msg': '成功', 'result': img})
 
 
@@ -16,7 +18,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin
 from rest_framework.response import Response
 from .models import Banner, Notice
-from .serializer import BannerSerializer, NoticeSerializer, CollectionSerializer
+from .serializer import BannerSerializer, NoticeSerializer, CollectionSerializer, CollectionSaveSerializer
 
 
 class BannerView(GenericViewSet, ListModelMixin):
@@ -34,16 +36,32 @@ class BannerView(GenericViewSet, ListModelMixin):
 
 from .models import Collection
 from datetime import datetime
-from rest_framework.mixins import DestroyModelMixin
+from rest_framework.mixins import DestroyModelMixin, CreateModelMixin
 
 
 # 信息采集接口--》查询登录用户当天采集的所有数据(未完成-还没写登录，暂时先查当天所有采集的数据)
-class CollectionView(GenericViewSet, ListModelMixin, DestroyModelMixin):
+class CollectionView(GenericViewSet, ListModelMixin, DestroyModelMixin, CreateModelMixin):
     # 查出当天的-->>没过滤当前用户
     queryset = Collection.objects.all().filter(create_time__gte=datetime.now().date())
     serializer_class = CollectionSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CollectionSaveSerializer
+        else:
+            return CollectionSerializer
 
     def list(self, request, *args, **kwargs):
         res = super().list(request, *args, **kwargs)
         today_count = len(self.get_queryset())
         return Response({'code': 100, 'msg': '成功', 'result': res.data, 'today_count': today_count})
+
+
+from .models import Area
+from .serializer import AreaSerializer
+
+
+# 查询当前用户负责的网格，目前拿所有的
+class AreaView(GenericViewSet, ListModelMixin):
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
